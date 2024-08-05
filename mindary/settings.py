@@ -16,11 +16,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 # 프로젝트의 루트 디렉토리를 가리키도록 BASE_DIR 설정
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 파일 저장 경로
 MEDIA_URL = '/wordcloud_images/' # URL을 통해 미디어 파일에 접근할 경로
