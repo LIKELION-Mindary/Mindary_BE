@@ -52,17 +52,23 @@ def exchange_kakao_access_token(access_code):
         },
     )
 
-		# 300번대 이상이면 다른 조치
+	# 300번대 이상이면 다른 조치
+    # if token.status_code >= 300:
+    #     return Response({'detail': 'Access token exchange failed'}, status=status.HTTP_401_UNAUTHORIZED)
     if token.status_code >= 300:
-        return Response({'detail': 'Access token exchange failed'}, status=status.HTTP_401_UNAUTHORIZED)
-
+        logger.error(f"Failed to exchange token: {token.status_code} {token.text}")
+        return Response({'detail': 'Access token exchange failed'}, status=token.status_code)
     return token.json()
 
 def extract_kakao_email(kakao_data):
 		# 응답으로 받은 id_token 값 가져오기
     id_token = kakao_data.get('id_token', None)
+    if id_token is None:
+        logger.error("ID token is missing from Kakao response.")
+        return Response({'detail': 'Missing ID token'}, status=status.HTTP_401_UNAUTHORIZED)
     
     if id_token is None: # 없으면 예외 처리
+        logger.error("ID token is missing from Kakao response.")
         return Response({'detail': 'Missing ID token'}, status=status.HTTP_401_UNAUTHORIZED)
     
     # JWT 키 가져오기 - 서명 검증에 필요한 키
@@ -78,9 +84,21 @@ def extract_kakao_email(kakao_data):
             algorithms=[signing_algol],        # |-> 유효한지 확인
             audience=os.environ.get('KAKAO_REST_API_KEY'),
         )
-        return payload['email']
+        email = payload.get('email')
+        if not email:
+            logger.error("Email not found in JWT payload.")
+            return Response({'detail': 'Email not found'}, status=status.HTTP_404_NOT_FOUND)
+        return email
+
+    except jwt.ExpiredSignatureError:
+        logger.error("The token has expired.")
+        return Response({'detail': 'Token has expired'}, status=status.HTTP_401_UNAUTHORIZED)
     except jwt.InvalidTokenError:
-        return Response({'detail': 'OIDC auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
+        logger.error("Invalid JWT token.")
+        return Response({'detail': 'OIDC auth failed(invalid token)'}, status=status.HTTP_401_UNAUTHORIZED)
+    except Exception as e:
+        logger.error(f"Unexpected error decoding token: {str(e)}")
+        return Response({'detail': 'Error decoding token'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @csrf_exempt
 @api_view(['POST'])
