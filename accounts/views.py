@@ -30,7 +30,8 @@ from rest_framework_simplejwt.exceptions import TokenError
 
 from django.views.decorators.csrf import csrf_exempt
 
-
+import logging
+logger = logging.getLogger('django')
 
 """
       < Kakao Login >

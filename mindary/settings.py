@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+import logging.config
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -188,4 +189,24 @@ SIMPLE_JWT = {
     'TOKEN_BLACKLIST': {
         'BLACKLIST_AFTER_ROTATION': True,
     }
+}
+
+#debug.log
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'debug.log'),
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
 }
